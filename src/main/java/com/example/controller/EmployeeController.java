@@ -12,20 +12,45 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/employees")
-@CrossOrigin(origins = "http://localhost:4200") // Allow Angular requests
+@CrossOrigin(origins = "http://localhost:4200") // for Angular frontend
 public class EmployeeController {
-    
-    @Autowired
-    private EmployeeRepository employeeRepository;
 
-    @PostMapping
-    public ResponseEntity<Employee> createEmployee(@RequestBody Employee employee) {
-        Employee savedEmployee = employeeRepository.save(employee);
-        return ResponseEntity.ok(savedEmployee);
+    private final EmployeeService service;
+
+    public EmployeeController(EmployeeService service) {
+        this.service = service;
     }
 
     @GetMapping
     public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+        return service.getAllEmployees();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Employee> getEmployeeById(@PathVariable String id) {
+        return service.getEmployeeById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public Employee createEmployee(@RequestBody Employee employee) {
+        return service.saveEmployee(employee);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Employee> updateEmployee(@PathVariable String id, @RequestBody Employee updated) {
+        return service.getEmployeeById(id).map(existing -> {
+            existing.setName(updated.getName());
+            existing.setEmail(updated.getEmail());
+            existing.setDepartment(updated.getDepartment());
+            return ResponseEntity.ok(service.saveEmployee(existing));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable String id) {
+        service.deleteEmployee(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -13,6 +13,9 @@ public class EmployeeService {
 
     @Autowired
     private EmployeeRepository repository;
+    public EmployeeService(EmployeeRepository repository) {
+        this.repository = repository;
+    }
 
     // Get all employees
     public List<Employee> getAllEmployees() {
